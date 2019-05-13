@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         富聊审核脚本
 // @namespace    http://tampermonkey.net/
-// @version      12.13.22
+// @version      12.14.19
 // @description  try to make work easy
 // @author       yinchengnuo
 // @match        http://*/*
@@ -1348,13 +1348,56 @@
 				$(".showpic tbody tr:nth-child(3)").css("height", "10px");
 				$(".showpic tbody tr:nth-child(4)").css("height", "10px");
 				$(".showpic tbody tr td").css("padding", "0px");
+                const nameList = []
+                const eList = $('.content_div a')
+                eList.each((i, e) => {
+                    nameList.push(e.innerHTML.trim())
+                })
+                nameList.forEach((ei, i) => {
+                    nameList.forEach((ej, j) => {
+                        if (ei === ej && i !== j) {
+                            eList[i].style.color = '#fff'
+                            eList[j].style.color = '#fff'
+                            eList[i].parentNode.style.color = '#fff'
+                            eList[j].parentNode.style.color = '#fff'
+                            eList[i].parentNode.style.background = 'blue'
+                            eList[j].parentNode.style.background = 'blue'
+                        }
+                    })
+                })
 			}
 		};
 
 		//一对一坐等
 	} else if (location.href.match(/videoLivePic!getSingleVideoLiveAuditList/g)) {
-		let width = 132;
+        window.qcVideo = null
+        $('<link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet"><script src="https://unpkg.com/video.js/dist/video.min.js"></script><script src="https://cdn.bootcss.com/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>').appendTo('head');
+        const urls = $('head').html().match(/\/\/pili-live-rtmp.hzwangjiao.com\/fuliao-live\/\d+/g)
+        if ($('.content_div table').first().find('table').length) {
+            for (let i = 0; i < $('.content_div table').first().find('table').length; i ++) {
+                urls.unshift(urls.pop())
+            }
+        }
+        let index = 0
+        let width = 132;
 		let height = width * 1.77;
+        $('.content_div div[id^="video"]').css('position', 'relative').css('height', '211px').css('overflow', 'hidden').each((i, e) => {
+            let str = `
+                          <video id="live${i}" controls muted autoplay preload="auto" style="width: ${width}px; height: ${height}px;"></video>
+                      `
+            $(e).html(str)
+        })
+        const vueTest = setInterval(() => {
+            if (window.videojs) {
+                $('.content_div video').each((i, e) => {
+                    let src = 'http:' + urls[i] + '.m3u8'
+                    videojs('live' + i, {}, function onPlayerReady(){
+                        this.src({src, type: "application/x-mpegURL"})
+                    })
+                })
+                clearInterval(vueTest)
+            }
+        }, 100)
 		$(
 			'<div class="mytool"style="float:right; margin: 8px 0px;font-size: 12px; position: absolute; right: 0px; top: 4px;"><span class="how" style="font-size: 8px; color: blue; cursor: pointer; ">如何使用？</span><span style="font-weight:bold;"> 当前页面停留时间:</span><span class="keepTime" style="color:red; min-width: 12px; display:inline-block;font-weight:bold;text-align:right;">0</span><span> s </span>&nbsp&nbsp<label for="dbClick" style="font-weight:bold; cursor: pointer; ">双击页面换一批：</label><input id="dbClick" type="checkbox" style="vertical-align: middle; cursor: pointer; width: 12px; height: 12px;">&nbsp&nbsp&nbsp&nbsp</div>'
 		).appendTo("body");
@@ -1367,7 +1410,6 @@
 			keepTime++;
 		}, 1000);
 		enterLogin($(".btn_blue").first());
-		$("body").css("-webkit-user-select", "none");
 		$("font").each(function (i, e) {
 			if (e.innerHTML == "男") {
 				$(e)
@@ -1409,7 +1451,7 @@
 				$(this)
 					.find('div[id^="video"]')
 					.append(
-						'<div class= "hoverbutton" style="opacity: 0.8; position: absolute; right: 0; top:0; width:132px; height: 18px;"><button class ="warn" style="width: 44px; height: 20px; background-color: #2ae; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid blue; border-radius: 8px;" type="button">警告</button><button style="width: 44px; height: 20px; background-color: #000; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid #ccc; border-radius: 8px;" type="button" class ="black">拉黑</button><button style="width: 44px; height: 20px; background-color: #f0f; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid #f40; border-radius: 8px;" type="button" class="sex">色情</button></div>'
+						`<div class= "hoverbutton" style="opacity: 0.8; position: absolute; z-index: 1; right: 0; top:0; width:132px; height: ${height - 40}px;"><button class ="warn" style="width: 44px; height: 20px; background-color: #2ae; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid blue; border-radius: 8px;" type="button">警告</button><button style="width: 44px; height: 20px; background-color: #000; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid #ccc; border-radius: 8px;" type="button" class ="black">拉黑</button><button style="width: 44px; height: 20px; background-color: #f0f; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid #f40; border-radius: 8px;" type="button" class="sex">色情</button><button class ="sound" style="width: 44px; height: 20px; position: absolute; left: 0; bottom: 0; background-color: #f40; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid blue; border-radius: 8px;" type="button">声音</button><button class ="full" style="width: 44px; height: 20px; position: absolute; right: 0; bottom: 0; background-color: orangered; color: #fff; box-sizing: border-box; cursor: pointer; border: 1px solid blue; border-radius: 8px;" type="button">全屏</button></div>`
 					);
 				$(".warn").hover(
 					function () {
@@ -1477,6 +1519,12 @@
 						.find("input:button:nth-child(3)")
 						.click();
 				});
+                $('.sound').click((e) => {
+                    $(e.target).parent().parent().find('.vjs-mute-control').first().click()
+                })
+                $('.full').click((e) => {
+                    $(e.target).parent().parent().find('.vjs-fullscreen-control').first().click()
+                })
 			});
 			$(".content_div>div>table").on("mouseleave", "table", function () {
 				$(".hoverbutton").hide();
@@ -1836,55 +1884,70 @@
 		}, 300);
 		//pk
 	} else if (location.href.match(/videoLiveAuditAction!videolivePKFlowList/g)) {
-		let width = 169;
-		let height = width * 1.77;
-		setTimeout(() => {
-			$("span").each(function (i, e) {
-				if (e.innerHTML === "才艺") {
-					e.innerHTML = "";
-				}
-			});
-			$("object")
-				.attr("width", width)
-				.attr("height", height);
-			$("embed")
-				.attr("width", width)
-				.attr("height", height);
-			$(".content_div table")
-				.css("height", "10px")
-				.css("position", "relative");
-			$(".content_div table input:button")
-				.css("margin", "0")
-				.css("padding", "0")
-				.css("width", "90%")
-				.css("float", "left");
-			$('div[id^="div_"]').css("min-height", "100px");
-			//$('.content_div table tr:nth-child(2)').hide();
-			$(".content_div table td").css("padding", "0");
-			$(".content_div table tr").css("height", "0px");
-			$(".content_div table tr td table")
-				.css("margin", "0")
-				.css("width", "50%");
-			$('.content_div div[id^="div"]>table')
-				.css("width", "130px")
-				.css("margin", "0")
-				.css("margin-left", "1.5px");
-			$('.content_div div[id^="div"]>table tr:nth-child(2) a')
-				.css("float", "left")
-				.css("width", "60px")
-				.css("white-space", "nowrap")
-				.css("overflow", "hidden")
-				.each(function (i, e) {
-					$(e)
-						.parent()
-						.parent()
-						.parent()
-						.attr("title", $(e).html());
-				});
-			$('.content_div  div[id^="div"] table tr:nth-child(3) td input:visible')
-				.css("float", "left")
-				.css("width", "50px")
-				.css("margin", "0");
-		}, 300);
+	    window.qcVideo = null
+        $('<div id="video-wrapper" style="display: none; position: absolute; z-index:999;  width: 1350px; height: 950px; left: 0; top: 40px; background: #ccc; overflow: hidden;"><video id="video" autoplay preload="auto" style="position: absolute; width: 100%; top: -310px;"></video><span id="close-video" style="position: absolute; width: 100px; height: 100px; text-align: center; line-height: 85px; border-radius: 50%; background-color: rgba(0, 0, 0, .6); font-size: 100px; color: #fff; right: 0; z-index: 1000;">×</span></wrapper>').appendTo('body')
+        $('<link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet"><script src="https://unpkg.com/video.js/dist/video.min.js"></script><script src="https://cdn.bootcss.com/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script><script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>').appendTo('head');
+        $('<style>.vjs-control-bar{position: absolute;bottom: 0; !important; width: 300px; text-align: center; justify-content: center; color: #fff; background-color: transparent; z-index: 99; height: 20px;}.vjs-live-display,.vjs-seek-to-live-control,.vjs-play-control{display: none;}</style>').appendTo('head')
+        const urls = $('head').html().match(/\/\/pili-live-rtmp.hzwangjiao.com\/fuliao-live\/\d+/g)
+        let index = 0
+        $('#close-video').click(() => {
+            $('#video-wrapper').hide()
+            videojs('video').pause()
+            videojs('live' + index).play()
+        })
+        $("span").each(function (i, e) {
+            if (e.innerHTML === "才艺") {
+                e.innerHTML = "";
+            }
+        });
+        $('.content_div table').css('margin', '0').css('height', 'auto')
+        $('.content_div div table').attr('width', '300px')
+        $('.content_div div[id^="div"]').attr('style', '').css('float', 'left').css('height', 'auto').css('border', '2px solid blue')
+        $('.content_div td table').css('width', '149.9px').css('float', 'left')
+        $('.content_div td').css('padding', '0')
+        $('.content_div table input').css('margin', '0').css('float', 'left').css('width', '45px')
+        $('.content_div table tr').css('height', 'auto')
+        $('.content_div div[id^="video"]').css('position', 'relative').css('height', '211px').css('overflow', 'hidden').each((i, e) => {
+            let str = `
+                      <span class="sound" style="width: 60px; height: 20px; position: absolute; left: 0; bottom: 10px; text-algin: center;cursor: pointer;z-index: 1; color: #fff; border: 1px solid black; border-radius: 8px; background-color: rgba(0, 0, 0, .6)">声音/静音</span>
+                      <span class="full" style="width: 60px; height: 20px; position: absolute; right: 0;bottom: 10px; text-algin: center; cursor: pointer; z-index: 1; color: #fff; border: 1px solid black; border-radius: 8px; background-color: rgba(0, 0, 0, .6)">全屏</span>
+                      <div style="width: 300px; height: 400px; position: absolute; overflow: hidden; top: -137px;">
+                          <video id="live${i}" controls muted autoplay preload="auto" style="width: 100%;"></video>
+                      </div>
+                      `
+            $(e).html(str)
+        })
+        const vueTest = setInterval(() => {
+            if (window.videojs) {
+                $('.content_div video').each((i, e) => {
+                    let src = 'http:' + urls[i] + '.m3u8'
+                    videojs('live' + i, {}, function onPlayerReady(){
+                        this.src({src, type: "application/x-mpegURL"})
+                    })
+                })
+                $('.sound').click((e) => {
+                    if ($(e.target).parent().find('.vjs-mute-control .vjs-control-text').first().html() === 'Unmute') {
+                        e.target.style.backgroundColor = 'rgba(255, 0, 0, .6)'
+                        $(e.target).parent().find('.vjs-mute-control').first().click();
+                    } else {
+                        e.target.style.backgroundColor = 'rgba(0, 0, 0, .6)'
+                        $(e.target).parent().find('.vjs-mute-control').first().click();
+                    }
+                })
+                $('.full').each((i, e) => {
+                    ((i, e) => {
+                      $(e).click((e) => {
+                        $('#video-wrapper').show()
+                          videojs('live' + i).pause()
+                          index = i
+                          videojs('video', {}, function onPlayerReady(){
+                          this.src({src: 'http:' + urls[i] + '.m3u8', type: "application/x-mpegURL"})
+                        })
+                      })
+                    })(i, e)
+                })
+                clearInterval(vueTest)
+            }
+        }, 100)
 	} else {}
 })(window.parent.$);
